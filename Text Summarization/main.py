@@ -15,7 +15,7 @@ import seaborn as sns
 from transformers import BartForConditionalGeneration, BartTokenizer
 
 
-fine_tuned_model_path = r"C:\Users\harsh\OneDrive\Desktop\Summarization-Project\Text Summarization\fine_tuned_bart"
+fine_tuned_model_path = r'./fine_tuned_bart'
 fine_tuned_model = BartForConditionalGeneration.from_pretrained(
     fine_tuned_model_path)
 fine_tuned_tokenizer = BartTokenizer.from_pretrained(fine_tuned_model_path)
@@ -137,28 +137,47 @@ def generate_sentiment_plot_and_save_to_csv(text, summary):
         return None
 
 
+# @app.route('/')
+# def index():
+#     connection = get_db_connection()
+#     if not connection:
+#         return "Failed to connect to the database.", 500
+
+#     try:
+#         cursor = connection.cursor(dictionary=True)
+#         cursor.execute(
+#             "SELECT id, title, content FROM news ORDER BY id DESC LIMIT 10")
+#         results = cursor.fetchall()
+#         return render_template('index.html', news=results)
+#     except mysql.connector.Error as e:
+#         print(f"Database error: {e}")
+#         return "An error occurred while fetching data.", 500
+#     finally:
+#         cursor.close()
+#         connection.close()
+
+
 @app.route('/')
 def index():
     connection = get_db_connection()
     if not connection:
-        return "Failed to connect to the database.", 500
+        return jsonify({"error": "Database connection failed"}), 500
 
     try:
         cursor = connection.cursor(dictionary=True)
         cursor.execute(
             "SELECT id, title, content FROM news ORDER BY id DESC LIMIT 10")
         results = cursor.fetchall()
-        return render_template('index.html', news=results)
+        return jsonify(results)
     except mysql.connector.Error as e:
-        print(f"Database error: {e}")
-        return "An error occurred while fetching data.", 500
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
         connection.close()
 
 
-@app.route('/summarize', methods=['POST'])
-def summarize():
+# @app.route('/summarize', methods=['POST'])
+# def summarize():
     data = request.get_json()
     text_to_summarize = data.get('text', '').strip()
     if not text_to_summarize:
@@ -219,6 +238,40 @@ def summarize():
         'generic_plot': generic_plot,
         'fine_tuned_plot': fine_tuned_plot
     })
+
+
+@app.route('/summarize', methods=['POST'])
+def summarize():
+    data = request.get_json()
+    text_to_summarize = data.get('text', '').strip()
+
+    if not text_to_summarize:
+        return jsonify({'error': 'No text provided'}), 400
+
+    try:
+        # Generate summaries
+        generic_response = summarizer(
+            text_to_summarize, max_length=100, min_length=25)
+        generic_summary = generic_response[0]['summary_text']
+
+        fine_tuned_response = fine_tuned_model_pipeline(
+            text_to_summarize, max_length=100, min_length=25)
+        fine_tuned_summary = fine_tuned_response[0]['summary_text']
+
+        # Generate sentiment plots
+        generic_plot = generate_sentiment_plot_and_save_to_csv(
+            generic_summary, generic_summary)
+        fine_tuned_plot = generate_sentiment_plot_and_save_to_csv(
+            fine_tuned_summary, fine_tuned_summary)
+
+        return jsonify({
+            'generic_summary': generic_summary,
+            'fine_tuned_summary': fine_tuned_summary,
+            'generic_plot': generic_plot,
+            'fine_tuned_plot': fine_tuned_plot
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 50
 
 
 @app.route('/summary/<int:summary_id>')
