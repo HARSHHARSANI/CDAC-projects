@@ -15,7 +15,7 @@ default_args = {
 
 dag = DAG(
     'youtube_data_pipeline',
-    default_args=default_args,;
+    default_args=default_args,
     schedule_interval='@daily',
 )
 
