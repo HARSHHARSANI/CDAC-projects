@@ -184,6 +184,10 @@ def summarize():
             generic_summary, generic_summary)
         fine_tuned_plot = generate_sentiment_plot_and_save_to_csv(
             fine_tuned_summary, fine_tuned_summary)
+        
+        # Save summaries to database
+        save_summary_to_db(text_to_summarize, generic_summary, fine_tuned_summary)
+
 
         return jsonify({
             'generic_summary': generic_summary,
@@ -195,44 +199,27 @@ def summarize():
         return jsonify({'error': str(e)}), 50
 
 
-@app.route('/summary/<int:summary_id>')
-def show_summary(summary_id):
+def save_summary_to_db(content, summarized_content, fine_tuned_summary):
+    """Inserts the summaries into the news_with_summaries table."""
     connection = get_db_connection()
     if not connection:
-        return "Failed to connect to the database.", 500
+        print("Failed to connect to the database.")
+        return
 
     try:
-        cursor = connection.cursor(dictionary=True)
-        query = "SELECT content, summarized_content, fine_tuned_summary FROM news_with_summaries WHERE id = %s"
-        cursor.execute(query, (summary_id,))
-        result = cursor.fetchone()
-        if not result:
-            return "Summary not found.", 404
-
-            # Check if the required content is available
-        if not result['summarized_content'] or not result['fine_tuned_summary']:
-            return "No summary available for this ID.", 404
-
-        generic_plot = generate_sentiment_plot_and_save_to_csv(
-            result['summarized_content'], result['summarized_content'])
-        fine_tuned_plot = generate_sentiment_plot_and_save_to_csv(
-            result['fine_tuned_summary'], result['fine_tuned_summary'])
-
-        return render_template(
-            'summary.html',
-            full_text=result['content'],
-            generic_summary=result['summarized_content'],
-            fine_tuned_summary=result['fine_tuned_summary'],
-            generic_plot=generic_plot,
-            fine_tuned_plot=fine_tuned_plot
-        )
+        cursor = connection.cursor()
+        insert_query = """
+            INSERT INTO news_with_summaries (content, summarized_content, fine_tuned_summary)
+            VALUES (%s, %s, %s)
+        """
+        cursor.execute(insert_query, (content, summarized_content, fine_tuned_summary))
+        connection.commit()
+        print("Summary successfully saved to database.")
     except mysql.connector.Error as e:
-        print(f"Error fetching summary: {e}")
-        return "An error occurred while fetching the summary.", 500
+        print(f"Database insert error: {e}")
     finally:
         cursor.close()
         connection.close()
-
 
 if __name__ == '__main__':
     app.run(debug=True)

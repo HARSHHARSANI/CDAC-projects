@@ -170,3 +170,4 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 textsummary/fine_tuned_bart/model.safetensors
+sentiment_results.csv
