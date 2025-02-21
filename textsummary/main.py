@@ -9,15 +9,21 @@ from transformers import pipeline
 import torch
 import matplotlib.pyplot as plt
 import seaborn as sns
+from transformers import GenerationConfig
 
 
 # Load the fine-tuned model
 from transformers import BartForConditionalGeneration, BartTokenizer
 
+fine_tuned_model_path =r"/home/sunbeam/Desktop/CDAC-projects/textsummary/fine_tuned_bart/"
 
-fine_tuned_model_path = r'./fine_tuned_bart'
-fine_tuned_model = BartForConditionalGeneration.from_pretrained(
-    fine_tuned_model_path)
+fine_tuned_model = BartForConditionalGeneration.from_pretrained(fine_tuned_model_path)
+
+# Explicitly set early_stopping
+gen_config = GenerationConfig.from_pretrained(fine_tuned_model_path, local_files_only=True)
+gen_config.early_stopping = True  # Ensure it's correctly set
+fine_tuned_model.generation_config = gen_config
+
 fine_tuned_tokenizer = BartTokenizer.from_pretrained(fine_tuned_model_path)
 
 # Function to summarize using your fine-tuned model
@@ -50,7 +56,7 @@ app = Flask(__name__)
 DB_CONFIG = {
     'host': 'localhost',
     'user': 'root',
-    'password': '12345678',
+    'password': 'manager',
     'database': 'news_db',
 }
 
@@ -136,27 +142,6 @@ def generate_sentiment_plot_and_save_to_csv(text, summary):
         print(f"Error generating sentiment plot and saving to CSV: {e}")
         return None
 
-
-# @app.route('/')
-# def index():
-    connection = get_db_connection()
-    if not connection:
-        return "Failed to connect to the database.", 500
-
-    try:
-        cursor = connection.cursor(dictionary=True)
-        cursor.execute(
-            "SELECT id, title, content FROM news ORDER BY id DESC LIMIT 10")
-        results = cursor.fetchall()
-        return render_template('index.html', news=results)
-    except mysql.connector.Error as e:
-        print(f"Database error: {e}")
-        return "An error occurred while fetching data.", 500
-    finally:
-        cursor.close()
-        connection.close()
-
-
 @app.route('/')
 def index():
     connection = get_db_connection()
@@ -174,70 +159,6 @@ def index():
     finally:
         cursor.close()
         connection.close()
-
-
-# @app.route('/summarize', methods=['POST'])
-# def summarize():
-#     data = request.get_json()
-#     text_to_summarize = data.get('text', '').strip()
-#     if not text_to_summarize:
-#         return jsonify({'error': 'No text provided to summarize.'}), 400
-
-#     # Generate summaries
-#     try:
-#         # Generate summary using the generic model
-#         generic_response = summarizer(
-#             text_to_summarize, max_length=100, min_length=25, do_sample=False)
-#         if not generic_response or 'summary_text' not in generic_response[0]:
-#             raise ValueError("Generic summary is empty or malformed.")
-#         generic_summary = generic_response[0]['summary_text']
-
-#         # Generate summary using the fine-tuned model
-#         fine_tuned_response = fine_tuned_model_pipeline(
-#             text_to_summarize, max_length=100, min_length=25, do_sample=False)
-#         if not fine_tuned_response or 'summary_text' not in fine_tuned_response[0]:
-#             raise ValueError("Fine-tuned summary is empty or malformed.")
-#         fine_tuned_summary = fine_tuned_response[0]['summary_text']
-
-#     except Exception as e:
-#         print(f"Summarization error: {e}")
-#         return jsonify({'error': 'Failed to generate summaries'}), 500
-
-#     # Save full content and both summaries to database in one go
-#     connection = get_db_connection()
-#     if not connection:
-#         return jsonify({'error': 'Database connection failed.'}), 500
-
-#     try:
-#         cursor = connection.cursor()
-#         save_query = """
-#         INSERT INTO news_with_summaries (title, content, summarized_content, fine_tuned_summary)
-#         VALUES (%s, %s, %s, %s)
-#         """
-#         title = "Untitled Article"  # Or fetch title from elsewhere if available
-#         cursor.execute(save_query, (title, text_to_summarize,
-#                        generic_summary, fine_tuned_summary))
-#         connection.commit()
-#         saved_id = cursor.lastrowid
-#     except mysql.connector.Error as e:
-#         print(f"Error saving to database: {e}")
-#         return jsonify({'error': 'Failed to save data to database'}), 500
-#     finally:
-#         cursor.close()
-#         connection.close()
-
-#     # Generate sentiment plot for both summaries
-#     generic_plot = generate_sentiment_plot_and_save_to_csv(
-#         generic_summary, generic_summary)
-#     fine_tuned_plot = generate_sentiment_plot_and_save_to_csv(
-#         fine_tuned_summary, fine_tuned_summary)
-
-#     # Return the response with redirect URL and plot data
-#     return jsonify({
-#         'redirect_url': url_for('show_summary', summary_id=saved_id),
-#         'generic_plot': generic_plot,
-#         'fine_tuned_plot': fine_tuned_plot
-#     })
 
 
 @app.route('/summarize', methods=['POST'])

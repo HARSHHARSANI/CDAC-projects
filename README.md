@@ -1,10 +1,10 @@
-# Clarity News 📰
+# SummerAi News 📰
 
-Clarity News is an news aggregation system that scrapes daily articles from various news websites (currently one), providing concise insights through AI-powered summarization and sentiment analysis.
+SummerAi News is an news aggregation system that scrapes daily articles from various news websites (currently one), providing concise insights through AI-powered summarization and sentiment analysis.
 
 #### Lil Video
 
-https://drive.google.com/file/d/1u8D1rM7NAdZF9awh77EvOLgikmIB1shK/view
+https://drive.google.com/file/d/1KYdm2yb_-WShO2BHG8slUYjBEo9c5Wpv/view?usp=sharing
 
 ![alt text](image.png)
 
@@ -31,8 +31,8 @@ https://drive.google.com/file/d/1u8D1rM7NAdZF9awh77EvOLgikmIB1shK/view
 ### 1️⃣ Clone the Repository
 
 ```sh
-git clone https://github.com/your-username/Clarity-News.git
-cd Clarity-News
+git clone https://github.com/HARSHHARSANI/CDAC-projects.git
+cd CDAC-projects/textsummary
 ```
 
 ### 2️⃣ Install Dependencies
@@ -74,12 +74,24 @@ CREATE TABLE IF NOT EXISTS summaries (
     summary TEXT
 );
 
+-- Create 'news_with_summaries' table
+CREATE TABLE
+    news_with_summaries (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        content TEXT NOT NULL,
+        summarized_content TEXT NOT NULL,
+        fine_tuned_summary TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
 ```
 
 ### 4️⃣ Run the Application
 
 ```sh
-python main.py
+python indianExpress.py     # scraping scripy (first run these)
+python main.py              # then run these
+streamlit main1.py          #then for streamlit
 ```
 
 ## 🎯 Future Enhancements

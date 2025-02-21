@@ -62,7 +62,7 @@ def scrape_inside_links(driver, n_list):
             driver.get(i["link"])
             time.sleep(5)
             # Optional: log the link being opened
-            print(f"Opening link: {i["link"]}")
+            print(f"Opening link: {i['link']}")
 
             driver.get(i["link"])  # Open the news link
             time.sleep(5)
@@ -216,7 +216,7 @@ def store_news_in_db(news_list):
     mydb = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="12345678",
+        password="manager",
         database="news_db"
     )
 
@@ -245,7 +245,9 @@ def store_news_in_db(news_list):
 def main():
     
     options = Options()
-    options.add_argument("--headless")  # Run in headless mode
+    options.add_argument("--profile")
+    options.add_argument("/home/sunbeam/snap/firefox/common/.mozilla/firefox/yfhirxjv.selenium-profile")  # Use your actual profile path
+    options.add_argument("--headless")  # Run in headless mode 
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
@@ -261,3 +263,6 @@ def main():
 # Run the main function
 if __name__ == "__main__":
     main()
+ 
+
+ 
