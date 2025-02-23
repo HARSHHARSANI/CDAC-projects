@@ -2,12 +2,6 @@
 
 SummerAi News is an news aggregation system that scrapes daily articles from various news websites (currently one), providing concise insights through AI-powered summarization and sentiment analysis.
 
-#### Lil Video
-
-https://drive.google.com/file/d/1KYdm2yb_-WShO2BHG8slUYjBEo9c5Wpv/view?usp=sharing
-
-![alt text](image.png)
-
 ## 🔥 Features
 
 - **Automated News Scraping**: Extracts news articles from web news sources using `Selenium`.
@@ -65,13 +59,6 @@ CREATE TABLE IF NOT EXISTS news (
     title VARCHAR(255),
     link VARCHAR(255),
     content LONGTEXT
-);
-
--- Create 'summaries' table
-CREATE TABLE IF NOT EXISTS summaries (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    full_text TEXT,
-    summary TEXT
 );
 
 -- Create 'news_with_summaries' table

@@ -171,3 +171,5 @@ cython_debug/
 .pypirc
 textsummary/fine_tuned_bart/model.safetensors
 sentiment_results.csv
+*.csv
+*.json
